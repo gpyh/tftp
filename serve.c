@@ -1,7 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <getopt.h>
 #include <string.h>
+#include <signal.h>
+#include <errno.h>
+
+volatile bool running;
+
+void sigUsrHandler(int signum) {
+  if(signum != SIGINT) {
+    fprintf(stderr, "Wrong signal.\n");
+    exit(EXIT_FAILURE);
+  }
+  running = false;
+}
 
 void serve(int argc, char* argv[]) {
 
@@ -47,5 +60,24 @@ void serve(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
   }
+
+  struct sigaction action;
+  action.sa_handler = sigUsrHandler;
+  action.sa_flags = 0;
+  if(sigfillset(&action.sa_mask) == -1) {
+    perror("sigfillset");
+    exit(EXIT_FAILURE);
+  }
+  if(sigaction(SIGINT, &action, NULL) == -1) {
+    perror("sigaction");
+    exit(EXIT_FAILURE);
+  }
+  running = true;
+
+  while(running) {
+    
+  }
+
+  printf("Server successfully stopped.\n");
 }
 

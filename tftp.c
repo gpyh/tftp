@@ -22,12 +22,12 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Please provide a command.\n\n%s", usage);
     exit(EXIT_FAILURE);
   }
+
   if((strlen(argv[1]) == 2 && strncmp(argv[1], "-h", 2) == 0) ||
       (strlen(argv[1]) == 6 && strncmp(argv[1], "--help", 6) == 0)) {
     printf("%s", usage);
     exit(EXIT_SUCCESS);
   }
-
 
   unsigned int i;
   for(i = 0; i < (sizeof cmds) / (sizeof (char*)); i++) {
