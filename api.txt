@@ -1,0 +1,28 @@
+tftp serve [-w windowsize] [-b blocksize] [-d dir] [-p port]
+
+-w --windowssize
+0 : don't use the windowsize extension
+default: 1
+
+-b --blocksize
+0 : don't use the blksize extension ()
+default : 512
+
+-d --default-directory
+set the directory used for relative paths and and default file location
+default : current directory
+
+-p --port
+set the port
+
+tftp fetch server file1 [-o file2] [-p port]
+
+-o --output-destination
+default : current directory with the same filename
+
+
+tftp send server file1 [-o file2] [-p port]
+
+-o --output-destination
+default : server's default directory with the same filename
+
