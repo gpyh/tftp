@@ -1,8 +1,6 @@
-# Files without extensions
-*
-!Makefile
-!*.*
-!*/
+bin/
+obj/
+lib/
 
 # Executables
 *.exe

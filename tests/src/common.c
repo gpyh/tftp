@@ -15,8 +15,6 @@ void readOpcodeSimple() {
   if(opcode != opcodeMustBe) {
     printf("Opcode is %d but should be %d\n", opcode, opcodeMustBe);
     abort();
-  } else {
-    printf("readOpcodeSimple passed!\n");
   }
 }
 
@@ -29,8 +27,6 @@ void writeOpcodeSimple() {
   if(opcode != opcodePacket) {
     printf("Opcode is %d but buf has %d\n", opcode, opcodePacket);
     abort();
-  } else {
-    printf("writeOpcodeSimple passed!\n");
   }
 }
 
@@ -43,10 +39,7 @@ void writeReadOpcodeIdentity() {
   if(opcode != opcodeOut) {
     printf("Opcode is %d but should be %d\n", opcodeOut, opcode);
     abort();
-  } else {
-    printf("writeReadOpcodeIdentity passed!\n");
   }
-  
 }
 
 void readWriteOpcodeIdentity() {
@@ -61,8 +54,6 @@ void readWriteOpcodeIdentity() {
         " but output opcode has bytes (%hhd, %hhd).\n",
         buf[0], buf[1], bufOut[0], bufOut[1]);
     abort();
-  } else {
-    printf("readWriteOpcodeIdentity passed!\n");
   }
 }
 
@@ -75,8 +66,6 @@ void readErrcodeSimple() {
   if(errcode != errcodeMustBe) {
     printf("Errcode is %d but should be %d\n", errcode, errcodeMustBe);
     abort();
-  } else {
-    printf("readErrcodeSimple passed!\n");
   }
 }
 
@@ -90,8 +79,6 @@ void writeErrcodeSimple() {
   if(errcode != errcodePacket) {
     printf("Errcode is %d but buf has %d\n", errcode, errcodePacket);
     abort();
-  } else {
-    printf("writeErrcodeSimple passed!\n");
   }
 }
 
@@ -104,8 +91,6 @@ void writeReadErrcodeIdentity() {
   if(errcode != errcodeOut) {
     printf("Errcode is %d but should be %d\n", errcodeOut, errcode);
     abort();
-  } else {
-    printf("writeReadErrcodeIdentity passed!\n");
   }
   
 }
@@ -122,8 +107,6 @@ void readWriteErrcodeIdentity() {
         " but output errcode has bytes (%hhd, %hhd).\n",
         buf[0], buf[1], bufOut[0], bufOut[1]);
     abort();
-  } else {
-    printf("readWriteErrcodeIdentity passed!\n");
   }
 }
 
@@ -223,8 +206,8 @@ void unmarshallACK() {
   memcpy(&buf[2], &blockNet, 2);
   packet_t packet = unmarshall(buf);
 
-  if(packet.opcode != DATA) {
-    printf("Opcode is %d but should be %d\n", packet.opcode, DATA);
+  if(packet.opcode != ACK) {
+    printf("Opcode is %d but should be %d\n", packet.opcode, ACK);
     abort();
   }
   if(packet.content.ack.block != block) {

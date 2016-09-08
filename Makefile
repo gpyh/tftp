@@ -1,36 +1,51 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=600 -Iinclude/
+CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=700 -Iinclude/ -IAdresseInternet/include -ISocketUDP/include
 LDFLAGS =
 LDLIBS = 
-SRC = $(wildcard *.c)
-OBJ = $(SOURCES:.c=.o)
 
-.PHONY: all clean
+.PHONY: all clean test
 
-all: build/tftp
-
-test: build/tests/common
-	-./build/tests/common
+all: bin/tftp
 
 clean:
-	find build -type f -delete
+	$(RM) -f bin/* obj/* tests/bin/* tests/obj/*
+	$(MAKE) -C AdresseInternet clean
+	$(MAKE) -C SocketUDP clean
 
-build/tftp: $(patsubst %,build/%,tftp.o serve.o fetch.o send.o)
+test: tests/bin/common
+	-tests/bin/common
 
-build/tftp.o: tftp.c $(patsubst %,include/%,serve.h fetch.h send.h)
 
-build/serve.o: serve.c
+bin/tftp: $(patsubst %,obj/%.o,tftp serve fetch send)
 
-build/fetch.o: fetch.c
+obj/tftp.o: src/tftp.c $(patsubst %,include/%.h,serve fetch send)
 
-build/send.o: send.c
+obj/serve.o: src/serve.c
 
-build/common.o: common.c include/common.h
+obj/fetch.o: src/fetch.c
 
-build/tests/common: build/tests/common.o build/common.o
+obj/send.o: src/send.c
 
-build/tests/common.o: tests/common.c include/common.h
+obj/common.o: src/common.c include/common.h
 
-build/%.o: %.c
+bin/%: obj/%.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+
+tests/bin/common: tests/obj/common.o obj/common.o AdresseInternet/lib/libAdresseInternet.a SocketUDP/lib/libSocketUDP.a
+
+tests/bin/%: tests/obj/%.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+tests/obj/%.o: tests/src/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+AdresseInternet/lib/libAdresseInternet.a:
+	$(MAKE) -C AdresseInternet all
+
+SocketUDP/lib/libSocketUDP.a:
+	$(MAKE) -C SocketUDP all
 

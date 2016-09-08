@@ -30,6 +30,7 @@ struct contentRq {
 
 struct contentData {
   uint16_t block;
+  size_t length;
   char* data;
 };
 
