@@ -120,8 +120,12 @@ void unmarshallRRQ() {
   buf[2 + strlen(filename)] = 0;
   strncpy(&buf[2 + strlen(filename) + 1], mode, strlen(mode));
   buf[2 + strlen(filename) + 1 + strlen(mode)] = 0;
-  packet_t packet = unmarshall(buf);
+  packet_t packet;
+  int status = unmarshall(&packet, buf, 2 + strlen(filename) + 1 + strlen(mode) + 1);
 
+  if(status != SUCCESS) {
+    printf("Unmarshalling failed!");
+  }
   if(packet.opcode != RRQ) {
     printf("Opcode is %d but should be %d\n", packet.opcode, RRQ);
     abort();
@@ -150,8 +154,12 @@ void unmarshallWRQ() {
   buf[2 + strlen(filename)] = 0;
   strncpy(&buf[2 + strlen(filename) + 1], mode, strlen(mode));
   buf[2 + strlen(filename) + 1 + strlen(mode)] = 0;
-  packet_t packet = unmarshall(buf);
+  packet_t packet;
+  int status = unmarshall(&packet, buf, 2 + strlen(filename) + 1 + strlen(mode) + 1);
 
+  if(status != SUCCESS) {
+    printf("Unmarshalling failed!");
+  }
   if(packet.opcode != WRQ) {
     printf("Opcode is %d but should be %d\n", packet.opcode, WRQ);
     abort();
@@ -179,8 +187,13 @@ void unmarshallDATA() {
   buf[1] = 3;
   memcpy(&buf[2], &blockNet, 2);
   strncpy(&buf[4], data, strlen(data));
-  packet_t packet = unmarshall(buf);
 
+  packet_t packet;
+  int status = unmarshall(&packet, buf, 2 + 2 + strlen(data));
+
+  if(status != SUCCESS) {
+    printf("Unmarshalling failed!");
+  }
   if(packet.opcode != DATA) {
     printf("Opcode is %d but should be %d\n", packet.opcode, DATA);
     abort();
@@ -204,8 +217,16 @@ void unmarshallACK() {
   buf[0] = 0;
   buf[1] = 4;
   memcpy(&buf[2], &blockNet, 2);
-  packet_t packet = unmarshall(buf);
 
+  packet_t packet;
+  int status = unmarshall(&packet, buf, 2 + 2);
+
+  if(status != SUCCESS) {
+    printf("Unmarshalling failed!");
+  }
+  if(status != SUCCESS) {
+    printf("Unmarshalling failed!");
+  }
   if(packet.opcode != ACK) {
     printf("Opcode is %d but should be %d\n", packet.opcode, ACK);
     abort();

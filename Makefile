@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=700 -Iinclude/ -IAdresseInternet/include -ISocketUDP/include
+CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=700 -Iinclude/ -IAdresseInternet/include -Isudp/include
 LDFLAGS =
 LDLIBS = 
 
@@ -10,7 +10,7 @@ all: bin/tftp
 clean:
 	$(RM) -f bin/* obj/* tests/bin/* tests/obj/*
 	$(MAKE) -C AdresseInternet clean
-	$(MAKE) -C SocketUDP clean
+	$(MAKE) -C sudp clean
 
 test: tests/bin/common
 	-tests/bin/common
@@ -35,7 +35,7 @@ obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 
-tests/bin/common: tests/obj/common.o obj/common.o AdresseInternet/lib/libAdresseInternet.a SocketUDP/lib/libSocketUDP.a
+tests/bin/common: tests/obj/common.o obj/common.o AdresseInternet/lib/libAdresseInternet.a sudp/lib/libsudp.a
 
 tests/bin/%: tests/obj/%.o
 	$(CC) $(LDFLAGS) -o $@ $^
@@ -46,6 +46,6 @@ tests/obj/%.o: tests/src/%.c
 AdresseInternet/lib/libAdresseInternet.a:
 	$(MAKE) -C AdresseInternet all
 
-SocketUDP/lib/libSocketUDP.a:
-	$(MAKE) -C SocketUDP all
+sudp/lib/libsudp.a:
+	$(MAKE) -C sudp all
 

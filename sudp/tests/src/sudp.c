@@ -3,21 +3,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <AdresseInternet.h>
-#include "SocketUDP.h"
+#include "sudp.h"
 
 int main (void) {
     char buffer[] = "Test de SocketUDP\n";
     char ip[128];
     memset(ip, 0, sizeof(ip));
-    SocketUDP *sock = (SocketUDP*)malloc(sizeof(*sock));
+
+    sudpSocket_t *sock = (sudpSocket_t*)malloc(sizeof(*sock));
     AdresseInternet *addr = (AdresseInternet*)malloc(sizeof(AdresseInternet));
     memset(addr, 0, sizeof(*addr));
-    initSocketUDP(sock);
-    attacherSocketUDP(sock, NULL, 5555, LOOPBACK);
-    recvFromSocketUDP(sock, buffer, sizeof(buffer), addr, 100);
+    sudpInitSocket(sock);
+    sudpAttachSocket(sock, NULL, 5555, LOOPBACK);
+    sudpRecvFromSocket(sock, buffer, sizeof(buffer), addr, 100);
     AdresseInternet_getIP(addr, ip, sizeof(ip));
     printf("%s\n", ip);
     free(addr);
-    closeSocketUDP(sock);
+    sudpCloseSocket(sock);
     return 0;
 }

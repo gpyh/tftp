@@ -5,26 +5,26 @@ LDLIBS =
 
 .PHONY: all clean test
 
-all: lib/libSocketUDP.a lib/libSocketUDP.so
+all: lib/libsudp.a lib/libsudp.so
 
 clean:
 	$(RM) -f obj/* tests/bin/* tests/obj/* 
 
-test: tests/bin/SocketUDP
-	-tests/bin/SocketUDP
+test: tests/bin/sudp
+	-tests/bin/sudp
 
 
-lib/libSocketUDP.a: obj/SocketUDP.o
+lib/libsudp.a: obj/sudp.o
 	ar r $@ $<
 
-lib/libSocketUDP.so: obj/SocketUDP.o
+lib/libsudp.so: obj/sudp.o
 	gcc -shared $< -o $@
 
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 
-tests/bin/SocketUDP: tests/obj/SocketUDP.o obj/SocketUDP.o ../AdresseInternet/lib/libAdresseInternet.a
+tests/bin/sudp: tests/obj/sudp.o obj/sudp.o ../AdresseInternet/lib/libAdresseInternet.a
 
 tests/bin/%: tests/obj/%.o
 	$(CC) $(LDFLAGS) -o $@ $^
