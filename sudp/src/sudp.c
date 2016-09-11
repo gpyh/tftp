@@ -1,5 +1,5 @@
 #include <string.h>
-#include <AdresseInternet.h>
+#include <AdrInet.h>
 #include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -23,16 +23,16 @@ int sudpInitSocket(sudpSocket_t *sock) {
 
 int sudpAttachSocket(sudpSocket_t *sock, const char *address, uint16_t port, int flags) {
     if (flags == 0 && address == NULL) {
-        sock->addr = AdresseInternet_any (port);
+        sock->addr = AdrInet_any (port);
     } else if (flags == LOOPBACK) {
-        sock->addr = AdresseInternet_loopback(port);
+        sock->addr = AdrInet_loopback(port);
         sock->bound = true;
     } else if (address != NULL) {
-        sock->addr = AdresseInternet_new(address, port);
+        sock->addr = AdrInet_new(address, port);
         sock->bound = true;
     }
     struct sockaddr addr;
-    AdresseInternet_to_sockaddr(sock->addr, &addr);
+    AdrInet_to_sockaddr(sock->addr, &addr);
 
     bind(sock->fd, &addr, sizeof(addr));
     return -1;
@@ -46,7 +46,7 @@ int sudpGetLocalName(sudpSocket_t *socket, char *buffer, int taille) {
     if(socket == NULL || socket->addr == NULL || buffer == NULL) {
         return -1;
     }
-    AdresseInternet_getinfo(socket->addr, buffer, taille, NULL, 0);
+    AdrInet_getinfo(socket->addr, buffer, taille, NULL, 0);
     int n = strlen(buffer);
     return n;
 }
@@ -55,7 +55,7 @@ int sudpGetLocalIP(const sudpSocket_t *socket, char *localIP, int tailleIP) {
     if(socket == NULL || socket->addr == NULL || localIP == NULL) {
         return -1;
     }
-    AdresseInternet_getIP(socket->addr, localIP, tailleIP);
+    AdrInet_getIP(socket->addr, localIP, tailleIP);
     int n = strlen(localIP);
     return n;
 }
@@ -64,19 +64,19 @@ uint16_t sudpGetLocalPort (const sudpSocket_t *socket) {
     if(socket == NULL || socket->addr == NULL) {
         return -1;
     }
-    return AdresseInternet_getPort(socket->addr);
+    return AdrInet_getPort(socket->addr);
 }
 
-ssize_t sudpWriteToSocket (sudpSocket_t *sock, const AdresseInternet *address, const char *buffer, int length) {
+ssize_t sudpWriteToSocket (sudpSocket_t *sock, const AdrInet *address, const char *buffer, int length) {
     if(sock == NULL || address == NULL || buffer == NULL) {
         return (ssize_t)-1;
     }
     struct sockaddr sockAddr;
-    AdresseInternet_to_sockaddr(address, &sockAddr);
+    AdrInet_to_sockaddr(address, &sockAddr);
     return sendto(sock->fd, buffer, (size_t)length, 0, &sockAddr, sizeof(sockAddr));
 }
 
-ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, AdresseInternet *address, int timeout) {
+ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, AdrInet *address, int timeout) {
     if(sock == NULL || address == NULL || buffer == NULL) {
         return (ssize_t)-1;
     }
@@ -101,7 +101,7 @@ ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, Adress
     if(FD_ISSET(sock->fd, &read_fds)) {
        size = recvfrom(sock->fd, buffer, (size_t)length, 0, &sockAddr, addr_length);
     }
-    sockaddr_to_AdresseInternet(&sockAddr, address); 
+    sockaddr_to_AdrInet(&sockAddr, address); 
     free(addr_length);
     return size;
 }
@@ -111,7 +111,7 @@ int sudpCloseSocket(sudpSocket_t *socket) {
         return -1;
     }
     int status = close(socket->fd);
-    AdresseInternet_free(socket->addr);
+    AdrInet_free(socket->addr);
     free(socket);
     return status;
 }

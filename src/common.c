@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include <AdresseInternet.h>
+#include <AdrInet.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -213,7 +213,7 @@ size_t marshall(char* buf, packet_t* packet) {
 
 // Communication
 
-int sendPacket(sudpSocket_t* socket, const AdresseInternet* dst,
+int sendPacket(sudpSocket_t* socket, const AdrInet* dst,
                packet_t* packet) {
   char* buf;
   size_t buflen = marshall(buf, packet);
@@ -221,7 +221,7 @@ int sendPacket(sudpSocket_t* socket, const AdresseInternet* dst,
 }
 
 int waitPacketWithTimeout(packet_t* packet, opcode_t opcode,
-                          sudpSocket_t* socket, AdresseInternet* connection,
+                          sudpSocket_t* socket, AdrInet* connection,
                           int timeout) {
   char* buf;
   int buflen = sudpRecvFromSocket(socket, buf, PACKET_SIZE, connection, timeout);
@@ -239,8 +239,8 @@ int waitPacketWithTimeout(packet_t* packet, opcode_t opcode,
 }
 
 int sendAndWait(sudpSocket_t* socket,
-                AdresseInternet* dst, packet_t* packetOut,
-                AdresseInternet* connection, 
+                AdrInet* dst, packet_t* packetOut,
+                AdrInet* connection, 
                 packet_t* packetIn, opcode_t opcodeIn,
                 checkFunction_t checkPacketIn,
                 unsigned int timeout, unsigned int attempts) {
@@ -285,5 +285,5 @@ int sendAndWait(sudpSocket_t* socket,
   return 1;
 }
 
-/* int sendRRQwaitDATA(sudpSocket* socket, const AdresseInternet*) */
+/* int sendRRQwaitDATA(sudpSocket* socket, const AdrInet*) */
 

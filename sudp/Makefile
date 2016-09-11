@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=700 -Iinclude/ -I../AdresseInternet/include -fPIC
+CFLAGS = -std=c11 -Wall -pthread -Wextra -Werror -pedantic -D_XOPEN_SOURCE=700 -Iinclude/ -I../AdrInet/include -fPIC
 LDFLAGS =
 LDLIBS = 
 
@@ -24,7 +24,7 @@ obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 
-tests/bin/sudp: tests/obj/sudp.o obj/sudp.o ../AdresseInternet/lib/libAdresseInternet.a
+tests/bin/sudp: tests/obj/sudp.o obj/sudp.o ../AdrInet/lib/libAdrInet.a
 
 tests/bin/%: tests/obj/%.o
 	$(CC) $(LDFLAGS) -o $@ $^
@@ -32,6 +32,6 @@ tests/bin/%: tests/obj/%.o
 tests/obj/%.o: tests/src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-../AdresseInternet/lib/libAdresseInternet.a:
-	$(MAKE) -C ../AdresseInternet all
+../AdrInet/lib/libAdrInet.a:
+	$(MAKE) -C ../AdrInet all
 

@@ -5,26 +5,26 @@ LDLIBS =
 
 .PHONY: all clean test
 
-all: lib/libAdresseInternet.a lib/libAdresseInternet.so
+all: lib/libAdrInet.a lib/libAdrInet.so
 
 clean:
 	$(RM) -f obj/* tests/bin/* tests/obj/* 
 
-test: TestAdresseInternet.c all
+test: TestAdrInet.c all
 	gcc $(CFLAGS) -Wl,--rpath=../lib/ $<   -o test $(LDFLAGS)
 
 
-lib/libAdresseInternet.a: obj/AdresseInternet.o
+lib/libAdrInet.a: obj/AdrInet.o
 	ar r $@ $<
 
-lib/libAdresseInternet.so: obj/AdresseInternet.o
+lib/libAdrInet.so: obj/AdrInet.o
 	gcc -shared $< -o $@
 
 obj/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 
-tests/bin/AdresseInternet: tests/obj/AdresseInternet.o obj/AdresseInternet.o
+tests/bin/AdrInet: tests/obj/AdrInet.o obj/AdrInet.o
 
 tests/bin/%: tests/obj/%.o
 	$(CC) $(LDFLAGS) -o $@ $^

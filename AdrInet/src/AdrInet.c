@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "AdresseInternet.h"
+#include "AdrInet.h"
 
-AdresseInternet *AdresseInternet_new (const char* adresse, uint16_t port) {
+AdrInet *AdrInet_new (const char* adresse, uint16_t port) {
     /*Allocation mémoire pour la structure */
-    AdresseInternet *addr = (AdresseInternet*)malloc(sizeof(*addr));
+    AdrInet *addr = (AdrInet*)malloc(sizeof(*addr));
     /* Déclaration des structures à utiliser avec getaddrinfo */
     struct addrinfo hints, *res;
     char service[BUFSIZ];
@@ -32,21 +32,21 @@ AdresseInternet *AdresseInternet_new (const char* adresse, uint16_t port) {
     return addr;
 }
 
-AdresseInternet *AdresseInternet_any (uint16_t port) {
-    return AdresseInternet_new("0.0.0.0", port);
+AdrInet *AdrInet_any (uint16_t port) {
+    return AdrInet_new("0.0.0.0", port);
 }
 
-AdresseInternet *AdresseInternet_loopback (uint16_t port) {
-    return AdresseInternet_new("127.0.0.1", port);
+AdrInet *AdrInet_loopback (uint16_t port) {
+    return AdrInet_new("127.0.0.1", port);
 }
 
-void AdresseInternet_free (AdresseInternet *adresse) {
+void AdrInet_free (AdrInet *adresse) {
     if(adresse != NULL) {
         free(adresse);
     }
 }
 
-int AdresseInternet_getinfo (AdresseInternet *adresse, char *nomDNS, int tailleDNS, char *nomPort, int taillePort) {
+int AdrInet_getinfo (AdrInet *adresse, char *nomDNS, int tailleDNS, char *nomPort, int taillePort) {
     if(adresse == NULL || (nomDNS == NULL && nomPort == NULL)) {
         return -1;
     }
@@ -67,7 +67,7 @@ int AdresseInternet_getinfo (AdresseInternet *adresse, char *nomDNS, int tailleD
     return 0;
 }
 
-int AdresseInternet_getIP (const AdresseInternet *adresse, char *IP, int tailleIP) {
+int AdrInet_getIP (const AdrInet *adresse, char *IP, int tailleIP) {
     if(adresse == NULL) {
         return -1;
     }
@@ -85,7 +85,7 @@ int AdresseInternet_getIP (const AdresseInternet *adresse, char *IP, int tailleI
     return 0;
 }
 
-uint16_t AdresseInternet_getPort (const AdresseInternet *adresse) {
+uint16_t AdrInet_getPort (const AdrInet *adresse) {
     if(adresse == NULL) {
         return -1;
     }
@@ -94,14 +94,14 @@ uint16_t AdresseInternet_getPort (const AdresseInternet *adresse) {
     return port;
 }
 
-int AdresseInternet_getDomain (const AdresseInternet *adresse) {
+int AdrInet_getDomain (const AdrInet *adresse) {
     if(adresse->sockAddr.ss_family != AF_INET || adresse->sockAddr.ss_family != AF_INET6) {
         return -1;
     }
     return adresse->sockAddr.ss_family;
 }
 
-int sockaddr_to_AdresseInternet (const struct sockaddr *addr, AdresseInternet *adresse) {
+int sockaddr_to_AdrInet (const struct sockaddr *addr, AdrInet *adresse) {
     if(addr == NULL || adresse == NULL ) {
         return -1;
     }
@@ -119,7 +119,7 @@ int sockaddr_to_AdresseInternet (const struct sockaddr *addr, AdresseInternet *a
     return 0;
 }
 
-int AdresseInternet_to_sockaddr (const AdresseInternet *adresse, struct sockaddr *addr) {
+int AdrInet_to_sockaddr (const AdrInet *adresse, struct sockaddr *addr) {
     if(adresse == NULL || addr == NULL) {
         return -1;
     }
@@ -131,7 +131,7 @@ int AdresseInternet_to_sockaddr (const AdresseInternet *adresse, struct sockaddr
     return 0;
 }
 
-int AdresseInternet_compare (const AdresseInternet *adresse1, const AdresseInternet *adresse2) {
+int AdrInet_compare (const AdrInet *adresse1, const AdrInet *adresse2) {
     if(adresse1 == NULL || adresse2 == NULL) {
         return -1;
     }
@@ -154,7 +154,7 @@ int AdresseInternet_compare (const AdresseInternet *adresse1, const AdresseInter
     return 0;
 }
 
-int AdresseInternet_copy (AdresseInternet *adrdst, const AdresseInternet *adrsrc) {
-    memcpy(adrdst, adrsrc, sizeof(AdresseInternet));
+int AdrInet_copy (AdrInet *adrdst, const AdrInet *adrsrc) {
+    memcpy(adrdst, adrsrc, sizeof(AdrInet));
     return 0;
 }

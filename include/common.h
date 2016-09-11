@@ -1,5 +1,5 @@
 
-#include <AdresseInternet.h>
+#include <AdrInet.h>
 #include <sudp.h>
 
 #include <arpa/inet.h>
@@ -163,8 +163,8 @@ typedef enum {
 typedef checkStatus_t (*checkFunction_t)(packet_t*);
 
 int sendAndWait(sudpSocket_t* socket,
-                AdresseInternet* dst, packet_t* packetOut,
-                AdresseInternet* connection, 
+                AdrInet* dst, packet_t* packetOut,
+                AdrInet* connection, 
                 packet_t* packetIn, opcode_t opcodeIn,
                 checkFunction_t checkPacketIn,
                 unsigned int timeout, unsigned int attempts);
