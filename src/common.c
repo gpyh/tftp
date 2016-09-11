@@ -1,10 +1,10 @@
 #include "common.h"
 
 #include <AdresseInternet.h>
-#include <sudp.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 // Verification
 
@@ -166,12 +166,10 @@ size_t marshallXRQ(char* buf, packet_t* packet) {
   return buflen;
 }
 
-
 size_t marshallRRQ(char* buf, packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(RRQ);
   return marshallXRQ(buf, packet);
 }
-
 
 size_t marshallWRQ(char* buf, packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(WRQ);
@@ -209,7 +207,6 @@ size_t (*marshalls[6])(char*, packet_t*) = {
   marshallACK,
   marshallERROR };
 
-
 size_t marshall(char* buf, packet_t* packet) {
   return marshalls[packet->opcode](buf, packet);
 }
@@ -241,48 +238,52 @@ int waitPacketWithTimeout(packet_t* packet, opcode_t opcode,
   return SUCCESS;
 }
 
-#define TIMEOUT 10
-#define TRY 10
+int sendAndWait(sudpSocket_t* socket,
+                AdresseInternet* dst, packet_t* packetOut,
+                AdresseInternet* connection, 
+                packet_t* packetIn, opcode_t opcodeIn,
+                checkFunction_t checkPacketIn,
+                unsigned int timeout, unsigned int attempts) {
+  // I know of the sacrosaint "goto considered harmful,
+  // but in this case it makes the code much clearer
+  unsigned int packetsSent = 0;
+  send:{
+    if(packetsSent == attempts) {
+      return 0;
+    }
+    if(sendPacket(socket, dst, packetOut) < 0) {
+      return -1;
+    }
+    packetsSent++;
+  }
 
-int sendRRQwaitDATA(sudpSocket_t* socket, const AdresseInternet* dst,
-                    const char* filename, AdresseInternet* connection,
-                    packet_t* data) {
-  packet_t* rrq;
-  createRRQ(rrq, filename, "octet");
-  if(sendPacket(socket, dst, rrq) < 0) {
-    return -1;
+  wait:{
+    int status =
+      waitPacketWithTimeout(packetIn, opcodeIn, socket, connection, timeout);
+    switch(status) {
+      case SUCCESS:{
+        packet_t* errpacket;
+        checkStatus_t checkStatus = checkPacketIn(packetIn);
+        switch(checkStatus) {
+          case OK:
+            return 0;
+          case RESEND:
+            goto send;
+          case IGNORE:
+            goto wait;
+          case ABORT:
+            return -1;
+        }
+      };
+      case TIMED_OUT:
+        goto send;
+      default:
+        return -1;
+    }
   }
-  int status = waitPacketWithTimeout(data, DATA, socket, connection, TIMEOUT);
-  if(status == TIMED_OUT) {
-    return 0;
-  }
-  if(status != SUCCESS && data->content.data.block != 1) {
-    packet_t* error;
-    createERROR(error, UNDEFINED_ERROR, "TODO");
-    // No check because we don't care if sending the error fails
-    sendPacket(socket, connection, error);
-    return -1;
-  }
+
   return 1;
 }
 
-/* void sendDataWaitAck(sudpSocket_t* socket, const AdresseInternet* dst, */
-/*                      const char* fichier, AdresseInternet* connexion, */
-/*                      char* reponse, size_t replength) { */
-/*   // Le timeout : On relance */
-/*   // On reçoit pas un packet tftp : On relance */
-/*   // On reçoit pas un ACK */
-/*   // On reçoit un ACK avec un mauvais num de block */
-/* #ifndef NDEBUG */
-/*   if(verifyDATA(1, fichier, "octet") != SUCCESS) { */
-/*     printf("Oops"); */
-/*     exit(EXIT_FAILURE); */
-/*   } */
-/* #endif */
-/*   packet_t packet; */
-/*   createDATA(fichier, "octet"); */
-/*   writeTosudpSocket_t(socket, dst, buf, buflen); */
-/*   char ackBuf[4]; */
-/*   recvFromsudpSocket_t(socket, ackBuf, 4, dst, TIMEOUT); */
-/* } */
+/* int sendRRQwaitDATA(sudpSocket* socket, const AdresseInternet*) */
 

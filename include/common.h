@@ -1,3 +1,7 @@
+
+#include <AdresseInternet.h>
+#include <sudp.h>
+
 #include <arpa/inet.h>
 #include <stdint.h>
 
@@ -148,4 +152,20 @@ int verifyDATA(uint16_t block, char* data, size_t datalen);
 int verifyERROR(errcode_t errcode, char* errmsg);
 
 /* status_t unmarshall(packet_t* packet, char* buf, size_t buflen); */
+
+typedef enum {
+  OK,
+  RESEND,
+  IGNORE,
+  ABORT
+} checkStatus_t;
+
+typedef checkStatus_t (*checkFunction_t)(packet_t*);
+
+int sendAndWait(sudpSocket_t* socket,
+                AdresseInternet* dst, packet_t* packetOut,
+                AdresseInternet* connection, 
+                packet_t* packetIn, opcode_t opcodeIn,
+                checkFunction_t checkPacketIn,
+                unsigned int timeout, unsigned int attempts);
 

@@ -15,7 +15,7 @@ sudpSocket_t *sudpCreateSocket () {
 }
 
 int sudpInitSocket(sudpSocket_t *sock) {
-    if ((sock->sock = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
+    if ((sock->fd = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
         return -1;
     }
     return 0;
@@ -26,25 +26,20 @@ int sudpAttachSocket(sudpSocket_t *sock, const char *address, uint16_t port, int
         sock->addr = AdresseInternet_any (port);
     } else if (flags == LOOPBACK) {
         sock->addr = AdresseInternet_loopback(port);
-        sock->is_bound = 1;
+        sock->bound = true;
     } else if (address != NULL) {
         sock->addr = AdresseInternet_new(address, port);
-        sock->is_bound = 1;
+        sock->bound = true;
     }
     struct sockaddr addr;
     AdresseInternet_to_sockaddr(sock->addr, &addr);
 
-    bind(sock->sock, &addr, sizeof(addr));
+    bind(sock->fd, &addr, sizeof(addr));
     return -1;
 }
 
-int sudpIsAttached(sudpSocket_t *socket) {
-    if (socket->is_bound == 1) {
-        return -1;
-    }
-    else {
-        return 0;
-    }
+bool sudpIsAttached(sudpSocket_t *socket) {
+  return socket->bound;
 }
 
 int sudpGetLocalName(sudpSocket_t *socket, char *buffer, int taille) {
@@ -78,7 +73,7 @@ ssize_t sudpWriteToSocket (sudpSocket_t *sock, const AdresseInternet *address, c
     }
     struct sockaddr sockAddr;
     AdresseInternet_to_sockaddr(address, &sockAddr);
-    return sendto(sock->sock, buffer, (size_t)length, 0, &sockAddr, sizeof(sockAddr));
+    return sendto(sock->fd, buffer, (size_t)length, 0, &sockAddr, sizeof(sockAddr));
 }
 
 ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, AdresseInternet *address, int timeout) {
@@ -95,16 +90,16 @@ ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, Adress
     tv.tv_sec = timeout;
     tv.tv_usec = 0;
     FD_ZERO(&read_fds);
-    FD_SET(sock->sock, &read_fds);
-    nfds = (sock->sock+1);
+    FD_SET(sock->fd, &read_fds);
+    nfds = (sock->fd+1);
     int result = select(nfds, &read_fds, NULL, NULL, &tv);
     if(result == -1) {
-        perror("Select : ");
+        perror("select");
         return -1;
     }
     ssize_t size = 0;
-    if(FD_ISSET(sock->sock, &read_fds)) {
-       size = recvfrom(sock->sock, buffer, (size_t)length, 0, &sockAddr, addr_length);
+    if(FD_ISSET(sock->fd, &read_fds)) {
+       size = recvfrom(sock->fd, buffer, (size_t)length, 0, &sockAddr, addr_length);
     }
     sockaddr_to_AdresseInternet(&sockAddr, address); 
     free(addr_length);
@@ -115,7 +110,7 @@ int sudpCloseSocket(sudpSocket_t *socket) {
     if(socket == NULL || socket->addr == NULL) {
         return -1;
     }
-    int status = close(socket->sock);
+    int status = close(socket->fd);
     AdresseInternet_free(socket->addr);
     free(socket);
     return status;
