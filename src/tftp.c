@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     "<command> is one of the following:\n"
     "  serve     Start a tftp server\n"
     "  fetch     Fetch file from a tftp server\n"
-    "  send      Send file to a tftp server\n"
+    "  send      Send file to a tftp server (not implemented)\n"
     "\n";
 
   if(argc < 2) {

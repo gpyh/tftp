@@ -5,7 +5,8 @@
 #include <sudp.h>
 
 #include <arpa/inet.h>
-#include <stdint.h>
+#include <stdint.h> // uint16_t
+#include <limits.h> // PATH_MAX
 
 #define DEFAULT_PORT 6969
 #define MAX_BLOCKSIZE 65464
@@ -134,7 +135,7 @@ void createERROR(packet_t* packet, errcode_t errcode, const char* errmsg) {
 
 #define PACKET_SIZE 512
 
-enum {
+typedef enum {
   UNIMPLEMENTED_MODE,
   UNKNOWN_MODE,
   UNKNOWN_ERRCODE,
@@ -152,14 +153,14 @@ enum {
   SOCKET_ERROR,
   TIMED_OUT,
   SUCCESS = 0
-};
+} status_t;
 
-int verifyRRQ(const char* filename, const char* mode);
-int verifyWRQ(const char* filename, const char* mode);
+status_t verifyRRQ(const char* filename, const char* mode);
+status_t verifyWRQ(const char* filename, const char* mode);
 // There's no need to verify ACK
-// int verifyACK(uint16_t block);
-int verifyDATA(uint16_t block, const char* data, size_t datalen);
-int verifyERROR(errcode_t errcode, const char* errmsg);
+// status_t verifyACK(uint16_t block);
+status_t verifyDATA(uint16_t block, const char* data, size_t datalen);
+status_t verifyERROR(errcode_t errcode, const char* errmsg);
 
 typedef enum {
   GO_THROUGH,
@@ -174,7 +175,10 @@ typedef struct {
   AdrInet* other;
   unsigned int timeout;
   unsigned int attempts;
-  size_t packetSize;
+  size_t blocksize;
+  int direction; // RRQ or WRQ
+  char fnameRead[PATH_MAX];
+  char fnameWrite[PATH_MAX];
 } connection_t;
 
 typedef callbackAction_t (*onWait_t)(const connection_t* connection,
@@ -184,8 +188,8 @@ typedef callbackAction_t (*onWait_t)(const connection_t* connection,
 int sendPacket(const sudpSocket_t* socket, const AdrInet* dst,
                const packet_t* packet, size_t buflenMax);
 
-int waitPacket(packet_t* packet, const sudpSocket_t* socket,
-               const AdrInet* connection, size_t buflenMax, int timeout);
+status_t waitPacket(packet_t* packet, const sudpSocket_t* socket,
+                    AdrInet* connection, size_t buflenMax, int timeout);
 
 int sendAndWait(const connection_t* connection, const packet_t* packetOut,
                 packet_t* packetIn, onWait_t callback);

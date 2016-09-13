@@ -1,0 +1,140 @@
+==1908== Memcheck, a memory error detector
+==1908== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==1908== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==1908== Command: bin/tftp fetch blabla 127.0.0.1
+==1908== 
+==1908== Conditional jump or move depends on uninitialised value(s)
+==1908==    at 0x4C2ABC6: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Invalid write of size 2
+==1908==    at 0x4022E4: marshallRRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4024B4: marshall (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402505: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d8840 is 0 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Invalid write of size 1
+==1908==    at 0x4C2DD00: strcpy (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x402296: marshallXRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4022F9: marshallRRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4024B4: marshall (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402505: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d8842 is 2 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Invalid write of size 1
+==1908==    at 0x4C2DD0F: strcpy (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x402296: marshallXRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4022F9: marshallRRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4024B4: marshall (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402505: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d8848 is 8 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Invalid write of size 4
+==1908==    at 0x4022B2: marshallXRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4022F9: marshallRRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4024B4: marshall (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402505: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d8849 is 9 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Invalid write of size 2
+==1908==    at 0x4022B8: marshallXRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4022F9: marshallRRQ (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4024B4: marshall (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402505: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d884d is 13 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Syscall param socketcall.sendto(msg) points to unaddressable byte(s)
+==1908==    at 0x4F1ED13: __sendto_nocancel (in /nix/store/dad9vxniabwzidvvxfsfj6vb0xncsbbb-glibc-2.23/lib/libc-2.23.so)
+==1908==    by 0x40335F: sudpWriteToSocket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x402539: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908==  Address 0x51d8840 is 0 bytes after a block of size 0 alloc'd
+==1908==    at 0x4C2AC30: malloc (in /nix/store/0b0pb7l0gfqqrzaagwjhbypq2y4a4j0d-valgrind-3.11.0/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1908==    by 0x4024EE: sendPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026A3: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Use of uninitialised value of size 8
+==1908==    at 0x4025DC: waitPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026E4: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Use of uninitialised value of size 8
+==1908==    at 0x403362: sudpRecvFromSocket (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+==1908== Conditional jump or move depends on uninitialised value(s)
+==1908==    at 0x4033AB: sudpRecvFromSocket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4025E0: waitPacket (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4026E4: sendAndWait (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x401BD2: fetch (in /home/gpyh/tftp/bin/tftp)
+==1908==    by 0x4013C5: main (in /home/gpyh/tftp/bin/tftp)
+==1908== 
+Fetching from server 127.0.0.1
+Will write at: /home/gpyh/tftp/blabla
+|   RRQ   | blabla | octet |
+|   RRQ   | blabla | octet |
+Packet sent
+|   RRQ   | blabla | octet |
+==1908== 
+==1908== HEAP SUMMARY:
+==1908==     in use at exit: 840 bytes in 3 blocks
+==1908==   total heap usage: 14 allocs, 11 frees, 5,344 bytes allocated
+==1908== 
+==1908== LEAK SUMMARY:
+==1908==    definitely lost: 0 bytes in 0 blocks
+==1908==    indirectly lost: 0 bytes in 0 blocks
+==1908==      possibly lost: 0 bytes in 0 blocks
+==1908==    still reachable: 840 bytes in 3 blocks
+==1908==         suppressed: 0 bytes in 0 blocks
+==1908== Rerun with --leak-check=full to see details of leaked memory
+==1908== 
+==1908== For counts of detected and suppressed errors, rerun with: -v
+==1908== Use --track-origins=yes to see where uninitialised values come from
+==1908== ERROR SUMMARY: 16 errors from 10 contexts (suppressed: 1 from 1)

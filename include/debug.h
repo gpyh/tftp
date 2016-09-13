@@ -1,15 +1,17 @@
 #ifndef TFTP_DEBUG_H
 #define TFTP_DEBUG_H
 
-#ifndef NDEBUG
-
 #include "common.h"
 
-void debugPrintPacket(const packet_t* packet);
+#ifndef NDEBUG
+
+void debugPacket(const packet_t* packet);
+void debugStatus(status_t status);
 
 #else
 
-#define debugPrintPacket(ignore) ((void) 0)
+#define debugPacket(ignore) ((void) 0)
+#define debugStatus(ignore) ((void) 0)
 
 #endif // NDEBUG
 

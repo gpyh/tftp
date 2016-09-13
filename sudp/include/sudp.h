@@ -15,8 +15,8 @@ typedef struct {
 
 #define SUDP_SIZE_QUEUE 10
 #define SUDP_BUFFER 1024
-enum { ANY, LOOPBACK };
 
+enum { ANY, LOOPBACK };
 
 sudpSocket_t* sudpCreateSocket();
 int sudpInitSocket(sudpSocket_t *socket);
@@ -29,7 +29,7 @@ uint16_t sudpGetLocalPort(const sudpSocket_t *socket);
 ssize_t sudpWriteToSocket(const sudpSocket_t *socket, const AdrInet *address,
                           const char *buf, int buflen);
 ssize_t sudpRecvFromSocket(const sudpSocket_t *socket, char *buf, int buflen,
-                           const AdrInet *address, int timeout);
+                           AdrInet *address, int timeout);
 int sudpCloseSocket(sudpSocket_t *socket);
 
 #endif // SUDP_H

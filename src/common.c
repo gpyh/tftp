@@ -1,14 +1,16 @@
 #include "common.h"
+#include "debug.h"
 
 #include <AdrInet.h>
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
 // Verification
 
-int verifyRQ(const char* filename, const char* mode) {
+status_t verifyRQ(const char* filename, const char* mode) {
   if(strcmp(mode, "netascii") == 0) {
     return UNIMPLEMENTED_MODE;
   }
@@ -24,23 +26,23 @@ int verifyRQ(const char* filename, const char* mode) {
   return SUCCESS;
 }
 
-int verifyRRQ(const char* filename, const char* mode) {
-  int verif = verifyRQ(filename, mode);
+status_t verifyRRQ(const char* filename, const char* mode) {
+  status_t verif = verifyRQ(filename, mode);
   if(verif != SUCCESS) {
     return verif;
   }
   return SUCCESS;
 }
 
-int verifyWRQ(const char* filename, const char* mode) {
-  int verif = verifyRQ(filename, mode);
+status_t verifyWRQ(const char* filename, const char* mode) {
+  status_t verif = verifyRQ(filename, mode);
   if(verif != SUCCESS) {
     return verif;
   }
   return SUCCESS;
 }
 
-int verifyDATA(uint16_t block, const char* data, size_t datalen) {
+status_t verifyDATA(uint16_t block, const char* data, size_t datalen) {
   (void)(block);
   (void)(data);
   if(2 + 2 + datalen > PACKET_SIZE) {
@@ -49,7 +51,7 @@ int verifyDATA(uint16_t block, const char* data, size_t datalen) {
   return SUCCESS;
 }
 
-int verifyERROR(errcode_t errcode, const char* errmsg) {
+status_t verifyERROR(errcode_t errcode, const char* errmsg) {
   if(errcode <= MIN_ERRCODE || errcode >= MAX_ERRCODE) {
     return UNKNOWN_ERRCODE;
   }
@@ -61,7 +63,7 @@ int verifyERROR(errcode_t errcode, const char* errmsg) {
 
 // Unmarshalling
 
-int unmarshallRRQ(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshallRRQ(packet_t* packet, const char* buf, size_t buflen) {
   if(buflen < 2 + 1 + 1 + 1 + 1) {
     return BUFFER_TOO_SMALL;
   }
@@ -75,7 +77,7 @@ int unmarshallRRQ(packet_t* packet, const char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallWRQ(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshallWRQ(packet_t* packet, const char* buf, size_t buflen) {
   if(buflen < 2 + 1 + 1 + 1 + 1) {
     return BUFFER_TOO_SMALL;
   }
@@ -89,7 +91,7 @@ int unmarshallWRQ(packet_t* packet, const char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallDATA(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshallDATA(packet_t* packet, const char* buf, size_t buflen) {
   uint16_t block = ntohs(concatTwoBytes(&buf[2]));
   const char* data = &buf[2 + 2];
   size_t datalen = buflen - (2 + 2);
@@ -101,13 +103,13 @@ int unmarshallDATA(packet_t* packet, const char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallACK(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshallACK(packet_t* packet, const char* buf, size_t buflen) {
   (void)(buflen);
   packet->content.ack.block = ntohs(concatTwoBytes(&buf[2]));
   return SUCCESS;
 }
 
-int unmarshallERROR(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshallERROR(packet_t* packet, const char* buf, size_t buflen) {
   if(buflen < 2 + 2 + 1) {
     return BUFFER_TOO_SMALL;
   }
@@ -124,7 +126,7 @@ int unmarshallERROR(packet_t* packet, const char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int (*unmarshalls[6])(packet_t*, const char*, size_t) = {
+status_t (*unmarshalls[6])(packet_t*, const char*, size_t) = {
   NULL,
   unmarshallRRQ,
   unmarshallWRQ,
@@ -132,7 +134,7 @@ int (*unmarshalls[6])(packet_t*, const char*, size_t) = {
   unmarshallACK,
   unmarshallERROR };
 
-int unmarshall(packet_t* packet, const char* buf, size_t buflen) {
+status_t unmarshall(packet_t* packet, const char* buf, size_t buflen) {
   if(buflen < 4) {
     return BUFFER_TOO_SMALL;
   }
@@ -202,25 +204,34 @@ size_t marshall(char* buf, const packet_t* packet) {
 
 int sendPacket(const sudpSocket_t* socket, const AdrInet* dst,
                const packet_t* packet, size_t buflenMax) {
-  char buf[buflenMax];
+  char* buf = malloc(buflenMax * (sizeof (char)));
   size_t buflen = marshall(buf, packet);
-  return sudpWriteToSocket(socket, dst, buf, buflen);
+  printf("Packet sent\n");
+  debugPacket(packet);
+  int status = sudpWriteToSocket(socket, dst, buf, buflen);
+  return status;
 }
 
-int waitPacket(packet_t* packet, const sudpSocket_t* socket,
-               const AdrInet* connection, size_t buflenMax, int timeout) {
-  char buf[buflenMax];
-  int buflen = sudpRecvFromSocket(socket, buf, PACKET_SIZE, connection, timeout);
+status_t waitPacket(packet_t* packet, const sudpSocket_t* socket,
+                    AdrInet* connection, size_t buflenMax, int timeout) {
+  char* buf = malloc(buflenMax * (sizeof (char)));
+  int buflen = sudpRecvFromSocket(socket, buf, buflenMax, connection, timeout);
   if(buflen < 0) {
+    free(buf);
     return SOCKET_ERROR;
   }
   if(buflen == 0) {
+    free(buf);
     return TIMED_OUT;
   }
   int status = unmarshall(packet, buf, (size_t) buflen);
   if(status != SUCCESS) {
+    free(buf);
     return status;
   }
+  printf("Packet received\n");
+  debugPacket(packet);
+  free(buf);
   return SUCCESS;
 }
 
@@ -234,7 +245,7 @@ int sendAndWait(const connection_t* connection, const packet_t* packetOut,
       return 0;
     }
     if(sendPacket(connection->socket, connection->other, packetOut,
-                  connection->packetSize) < 0) {
+                  connection->blocksize) < 0) {
       return -1;
     }
     packetsSent++;
@@ -243,7 +254,7 @@ int sendAndWait(const connection_t* connection, const packet_t* packetOut,
   wait:{
     int status =
       waitPacket(packetIn, connection->socket, connection->self,
-                 connection->packetSize, connection->timeout);
+                 connection->blocksize, connection->timeout);
     switch(status) {
       case SUCCESS:{
         callbackAction_t action =
@@ -268,59 +279,57 @@ int sendAndWait(const connection_t* connection, const packet_t* packetOut,
 
   return 1;
 }
-
-#define TIMEOUT 10
-#define ATTEMPTS 10 
+/*
 int sendError(const connection_t* connection,
               errcode_t errcode, const char* errmsg) {
   packet_t packet;
   createERROR(&packet, errcode, errmsg);
   return sendPacket(connection->socket, connection->other, &packet,
-                    connection->packetSize);
+                    connection->blocksize);
 }
 
-/* callbackAction_t sRRQwDATA(const connection_t* connection, */
-/*                            const packet_t* packetOut, */
-/*                            const packet_t* packetIn){ */
-/*   if(packetIn->opcode == DATA) { */
-/*     if(packetIn->content.data.block != 1) { */
-/*       sendError(connection->socket, connection->other, */
-/*                 UNDEFINED_ERROR, "TODO"); */
-/*       return ABORT; */
-/*     } */
-/*     return GO_THROUGH; */
-/*   } */
-/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
-/*   return ABORT; */
-/* } */
+callbackAction_t sRRQwDATA(const connection_t* connection,
+                           const packet_t* packetOut,
+                           const packet_t* packetIn){
+  if(packetIn->opcode == DATA) {
+    if(packetIn->content.data.block != 1) {
+      sendError(connection->socket, connection->other,
+                UNDEFINED_ERROR, "TODO");
+      return ABORT;
+    }
+    return GO_THROUGH;
+  }
+  sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO");
+  return ABORT;
+}
 
-/* callbackAction_t sDATAwACK(const connection_t* connection, */
-/*                            const packet_t* packetOut, */
-/*                            const packet_t* packetIn){ */
-/*   if(packetIn->opcode == ACK) { */
-/*     if(packetIn->content.ack.block < packetOut->content.data.block) { */
-/*       return IGNORE; */
-/*     } */
-/*     if(packetIn->content.ack.block == packetOut->content.data.block) { */
-/*       return GO_THROUGH; */
-/*     } */
-/*   } */
-/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
-/*   return ABORT; */
-/* } */
+callbackAction_t sDATAwACK(const connection_t* connection,
+                           const packet_t* packetOut,
+                           const packet_t* packetIn){
+  if(packetIn->opcode == ACK) {
+    if(packetIn->content.ack.block < packetOut->content.data.block) {
+      return IGNORE;
+    }
+    if(packetIn->content.ack.block == packetOut->content.data.block) {
+      return GO_THROUGH;
+    }
+  }
+  sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO");
+  return ABORT;
+}
 
-/* callbackAction_t sACKwDATA(const connection_t* connection, */
-/*                            const packet_t* packetOut, */
-/*                            const packet_t* packetIn){ */
-/*   if(packetIn->opcode == DATA) { */
-/*     if(packetIn->content.data.block <= packetOut->content.ack.block) { */
-/*       return IGNORE; */
-/*     } */
-/*     if(packetIn->content.data.block == packetOut->content.ack.block + 1) { */
-/*       return GO_THROUGH; */
-/*     } */
-/*   } */
-/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
-/*   return ABORT; */
-/* } */
-
+callbackAction_t sACKwDATA(const connection_t* connection,
+                           const packet_t* packetOut,
+                           const packet_t* packetIn){
+  if(packetIn->opcode == DATA) {
+    if(packetIn->content.data.block <= packetOut->content.ack.block) {
+      return IGNORE;
+    }
+    if(packetIn->content.data.block == packetOut->content.ack.block + 1) {
+      return GO_THROUGH;
+    }
+  }
+  sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO");
+  return ABORT;
+}
+*/

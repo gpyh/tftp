@@ -5,7 +5,7 @@
 
 #ifndef NDEBUG
 
-void debugPrintPacket(const packet_t* packet) {
+void debugPacket(const packet_t* packet) {
   switch(packet->opcode) {
     case RRQ: {
       const char* str = "|   RRQ   | %s | %s |\n";
@@ -77,5 +77,59 @@ void debugPrintPacket(const packet_t* packet) {
       break;
   }
 }
+
+void debugStatus(status_t status) {
+  switch(status) {
+    case UNKNOWN_MODE:
+      printf("UNKNOWN_MODE\n");
+      break;
+    case UNKNOWN_ERRCODE:
+      printf("UNKNOWN_ERRCODE\n");
+      break;
+    case UNKNOWN_OPCODE:
+      printf("UNKNOWN_OPCODE\n");
+      break;
+    case BUFFER_TOO_BIG:
+      printf("BUFFER_TOO_BIG\n");
+      break;
+    case BUFFER_TOO_SMALL:
+      printf("BUFFER_TOO_SMALL\n");
+      break;
+    case FILENAME_TOO_LONG:
+      printf("FILENAME_TOO_LONG\n");
+      break;
+    case DATA_TOO_BIG:
+      printf("DATA_TOO_BIG\n");
+      break;
+    case ERRMSG_TOO_BIG:
+      printf("ERRMSG_TOO_BIG\n");
+      break;
+    case ERRMSG_TRUNCATED:
+      printf("ERRMSG_TRUNCATED\n");
+      break;
+    case MODE_TRUNCATED:
+      printf("MODE_TRUNCATED\n");
+      break;
+    case INVALID_BLOCK:
+      printf("INVALID_BLOCK\n");
+      break;
+    case WRONG_OPCODE:
+      printf("WRONG_OPCODE\n");
+      break;
+    case ERROR_RECEIVED:
+      printf("ERROR_RECEIVED\n");
+      break;
+    case SOCKET_ERROR:
+      printf("SOCKET_ERROR\n");
+      break;
+    case TIMED_OUT:
+      printf("TIMED_OUT\n");
+      break;
+    case SUCCESS:
+      printf("SUCCESS\n");
+      break;
+  }
+}
+
 
 #endif // NDEBUG

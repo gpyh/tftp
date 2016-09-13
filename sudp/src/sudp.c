@@ -76,7 +76,7 @@ ssize_t sudpWriteToSocket (const sudpSocket_t *sock, const AdrInet *address, con
     return sendto(sock->fd, buffer, (size_t)length, 0, &sockAddr, sizeof(sockAddr));
 }
 
-ssize_t sudpRecvFromSocket (const sudpSocket_t *sock, char *buffer, int length, const AdrInet *address, int timeout) {
+ssize_t sudpRecvFromSocket (const sudpSocket_t *sock, char *buffer, int length, AdrInet *address, int timeout) {
     if(sock == NULL || address == NULL || buffer == NULL) {
         return (ssize_t)-1;
     }
@@ -100,9 +100,9 @@ ssize_t sudpRecvFromSocket (const sudpSocket_t *sock, char *buffer, int length, 
       }
     }
     ssize_t size = 0;
-    if(FD_ISSET(sock->fd, &read_fds)) {
+    /* if(FD_ISSET(sock->fd, &read_fds)) { */
        size = recvfrom(sock->fd, buffer, (size_t)length, 0, &sockAddr, addr_length);
-    }
+    /* } */
     sockaddr_to_AdrInet(&sockAddr, address); 
     free(addr_length);
     return size;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "debug.h"
 #include "fetch.h"
 
 #include <getopt.h> // arg parsing
@@ -11,6 +12,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+// Globals
+connection_t cnx;
 
 callbackAction_t onRequest(const connection_t* connection,
                            const packet_t* packetOut,
@@ -43,11 +46,10 @@ void snapBaseOnCwd(char* buf, size_t buflen, const char* source) {
     strcpy(&buf[strlen(cwd) + 1], base);
 }
 
-void fetch(int argc, char* argv[]) {
+static void handleArgs(connection_t* connection, int argc, char* argv[]) {
 
   const char* usage =
-    "Usage: tftp fetch <server> <file1> [-o <file2>] [-p <port>] "
-            "[-a <attempts>] [-t <timeout>] [-h]\n"
+    "Usage: tftp fetch <server> <file1> [-o <file2>] [-p <port>] " "[-a <attempts>] [-t <timeout>] [-h]\n"
     "\n"
     "  -h, --help\n"
     "  -o, --output <file2>\n"
@@ -134,13 +136,13 @@ void fetch(int argc, char* argv[]) {
     }
   }
   
-  for(int i = optind; i < argc; i++) {
-    printf("%s\n", argv[i]);
-  }
+  /* for(int i = optind; i < argc; i++) { */
+  /*   printf("%s\n", argv[i]); */
+  /* } */
 
   // TODO properly
-  server = argv[1];
   fnameRead = argv[2];
+  server = argv[3];
 
   if(useDefaultFnameWrite) {
     snapBaseOnCwd(fnameWrite, (sizeof fnameWrite), fnameRead);
@@ -155,21 +157,33 @@ void fetch(int argc, char* argv[]) {
     timeout = DEFAULT_TIMEOUT_FETCH;
   }
 
-  printf("file2: %s\n", fnameWrite);
+  connection->timeout = timeout;
+  connection->attempts = attempts;
+  connection->self = AdrInet_loopback(9876);
+  connection->other = AdrInet_new(server, port);
+  connection->direction = RRQ;
+  strncpy(connection->fnameRead, fnameRead, sizeof connection->fnameRead);
+  strncpy(connection->fnameWrite, fnameWrite, sizeof connection->fnameWrite);
+  connection->socket = sudpCreateSocket();
+  sudpInitSocket(connection->socket);
+
+}
+
+void fetch(int argc, char* argv[]) {
+
+  handleArgs(&cnx, argc, argv);
   
-  connection_t connection;
-  connection.socket = sudpCreateSocket();
-  connection.self = AdrInet_loopback(9876);
-  connection.other = AdrInet_new(server, port);
-  connection.timeout = timeout;
-  connection.attempts = attempts;
-  sudpInitSocket(connection.socket);
-
   packet_t packetRRQ;
-  createRRQ(&packetRRQ, fnameRead, "octet");
-  packet_t packetIn;
-  sendAndWait(&connection, &packetRRQ, &packetIn, onRequest);
+  createRRQ(&packetRRQ, cnx.fnameRead, "octet");
+  debugPacket(&packetRRQ);
 
+  printf("Will write at: %s\n", cnx.fnameWrite);
+
+  packet_t packetIn;
+  sendAndWait(&cnx, &packetRRQ, &packetIn, onRequest);
+
+  /* (void)(connection); */
+  /* (void)(server); */
 
   exit(EXIT_SUCCESS);
 }
