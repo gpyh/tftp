@@ -8,7 +8,7 @@
 
 // Verification
 
-int verifyRQ(const char* filename, char* mode) {
+int verifyRQ(const char* filename, const char* mode) {
   if(strcmp(mode, "netascii") == 0) {
     return UNIMPLEMENTED_MODE;
   }
@@ -24,7 +24,7 @@ int verifyRQ(const char* filename, char* mode) {
   return SUCCESS;
 }
 
-int verifyRRQ(const char* filename, char* mode) {
+int verifyRRQ(const char* filename, const char* mode) {
   int verif = verifyRQ(filename, mode);
   if(verif != SUCCESS) {
     return verif;
@@ -32,7 +32,7 @@ int verifyRRQ(const char* filename, char* mode) {
   return SUCCESS;
 }
 
-int verifyWRQ(const char* filename, char* mode) {
+int verifyWRQ(const char* filename, const char* mode) {
   int verif = verifyRQ(filename, mode);
   if(verif != SUCCESS) {
     return verif;
@@ -40,16 +40,16 @@ int verifyWRQ(const char* filename, char* mode) {
   return SUCCESS;
 }
 
-int verifyDATA(uint16_t block, char* data, size_t datalen) {
-  if(block == 0) {
-  }
+int verifyDATA(uint16_t block, const char* data, size_t datalen) {
+  (void)(block);
+  (void)(data);
   if(2 + 2 + datalen > PACKET_SIZE) {
     return DATA_TOO_BIG;
   }
   return SUCCESS;
 }
 
-int verifyERROR(errcode_t errcode, char* errmsg) {
+int verifyERROR(errcode_t errcode, const char* errmsg) {
   if(errcode <= MIN_ERRCODE || errcode >= MAX_ERRCODE) {
     return UNKNOWN_ERRCODE;
   }
@@ -61,15 +61,12 @@ int verifyERROR(errcode_t errcode, char* errmsg) {
 
 // Unmarshalling
 
-int unmarshallRRQ(packet_t* packet, char* buf, size_t buflen) {
-  if(buflen < 2 + 1 +1) {
+int unmarshallRRQ(packet_t* packet, const char* buf, size_t buflen) {
+  if(buflen < 2 + 1 + 1 + 1 + 1) {
     return BUFFER_TOO_SMALL;
   }
-  if(readOpcode(buf) != RRQ) {
-    return WRONG_OPCODE;
-  }
-  char* filename = &buf[2];
-  char* mode = &buf[2 + strlen(filename) + 1];
+  const char* filename = &buf[2];
+  const char* mode = &buf[2 + strlen(filename) + 1];
   int status;
   if((status = verifyRRQ(filename, mode)) != SUCCESS) {
     return status;
@@ -78,15 +75,12 @@ int unmarshallRRQ(packet_t* packet, char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallWRQ(packet_t* packet, char* buf, size_t buflen) {
-  if(buflen < 2 + 1 +1) {
+int unmarshallWRQ(packet_t* packet, const char* buf, size_t buflen) {
+  if(buflen < 2 + 1 + 1 + 1 + 1) {
     return BUFFER_TOO_SMALL;
   }
-  if(readOpcode(buf) != WRQ) {
-    return WRONG_OPCODE;
-  }
-  char* filename = &buf[2];
-  char* mode = &buf[2 + strlen(filename) + 1];
+  const char* filename = &buf[2];
+  const char* mode = &buf[2 + strlen(filename) + 1];
   int status;
   if((status = verifyWRQ(filename, mode)) != SUCCESS) {
     return status;
@@ -95,15 +89,9 @@ int unmarshallWRQ(packet_t* packet, char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallDATA(packet_t* packet, char* buf, size_t buflen) {
-  if(buflen < 2 + 2 + 0) {
-    return BUFFER_TOO_SMALL;
-  }
-  if(readOpcode(buf) != DATA) {
-    return WRONG_OPCODE;
-  }
+int unmarshallDATA(packet_t* packet, const char* buf, size_t buflen) {
   uint16_t block = ntohs(concatTwoBytes(&buf[2]));
-  char* data = &buf[2 + 2];
+  const char* data = &buf[2 + 2];
   size_t datalen = buflen - (2 + 2);
   int status;
   if((status = verifyDATA(block, data, datalen)) != SUCCESS) {
@@ -113,26 +101,18 @@ int unmarshallDATA(packet_t* packet, char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int unmarshallACK(packet_t* packet, char* buf, size_t buflen) {
-  if(buflen < 2 + 2) {
-    return BUFFER_TOO_SMALL;
-  }
-  if(readOpcode(buf) != ACK) {
-    return WRONG_OPCODE;
-  }
+int unmarshallACK(packet_t* packet, const char* buf, size_t buflen) {
+  (void)(buflen);
   packet->content.ack.block = ntohs(concatTwoBytes(&buf[2]));
   return SUCCESS;
 }
 
-int unmarshallERROR(packet_t* packet, char* buf, size_t buflen) {
+int unmarshallERROR(packet_t* packet, const char* buf, size_t buflen) {
   if(buflen < 2 + 2 + 1) {
     return BUFFER_TOO_SMALL;
   }
-  if(readOpcode(buf) != ERROR) {
-    return WRONG_OPCODE;
-  }
   errcode_t errcode = readErrcode(&buf[2]);
-  char* errmsg = &buf[2 + 2];
+  const char* errmsg = &buf[2 + 2];
   if(buf[buflen - 1] != 0) {
     return ERRMSG_TRUNCATED;
   }
@@ -144,7 +124,7 @@ int unmarshallERROR(packet_t* packet, char* buf, size_t buflen) {
   return SUCCESS;
 }
 
-int (*unmarshalls[6])(packet_t*, char*, size_t) = {
+int (*unmarshalls[6])(packet_t*, const char*, size_t) = {
   NULL,
   unmarshallRRQ,
   unmarshallWRQ,
@@ -152,13 +132,20 @@ int (*unmarshalls[6])(packet_t*, char*, size_t) = {
   unmarshallACK,
   unmarshallERROR };
 
-int unmarshall(packet_t* packet, opcode_t opcode, char* buf, size_t buflen) {
+int unmarshall(packet_t* packet, const char* buf, size_t buflen) {
+  if(buflen < 4) {
+    return BUFFER_TOO_SMALL;
+  }
+  opcode_t opcode = readOpcode(buf);
+  if(opcode <= MIN_OPCODE || opcode >= MAX_OPCODE) {
+    return UNKNOWN_OPCODE;
+  }
   return unmarshalls[opcode](packet, buf, buflen);
 }
 
 // Marshalling
 
-size_t marshallXRQ(char* buf, packet_t* packet) {
+size_t marshallXRQ(char* buf, const packet_t* packet) {
   size_t buflen = 2 + strlen(packet->content.rq.filename) + 1 + strlen("octet") + 1;
   // Not a problem to use strcpy because we don't know the length anyway
   strcpy(&buf[2], packet->content.rq.filename);
@@ -166,17 +153,17 @@ size_t marshallXRQ(char* buf, packet_t* packet) {
   return buflen;
 }
 
-size_t marshallRRQ(char* buf, packet_t* packet) {
+size_t marshallRRQ(char* buf, const packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(RRQ);
   return marshallXRQ(buf, packet);
 }
 
-size_t marshallWRQ(char* buf, packet_t* packet) {
+size_t marshallWRQ(char* buf, const packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(WRQ);
   return marshallXRQ(buf, packet);
 }
 
-size_t marshallDATA(char* buf, packet_t* packet) {
+size_t marshallDATA(char* buf, const packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(DATA);
   size_t buflen = 2 + 2 + packet->content.data.datalen;
   ((uint16_t*) buf)[2 / 2] = htons(packet->content.data.block);
@@ -184,14 +171,14 @@ size_t marshallDATA(char* buf, packet_t* packet) {
   return buflen;
 }
 
-size_t marshallACK(char* buf, packet_t* packet) {
+size_t marshallACK(char* buf, const packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(ACK);
   size_t buflen = 2 + 2;
   ((uint16_t*) buf)[2 / 2] = htons(packet->content.ack.block);
   return buflen;
 }
 
-size_t marshallERROR(char* buf, packet_t* packet) {
+size_t marshallERROR(char* buf, const packet_t* packet) {
   ((uint16_t*) buf)[0] = htons(ERROR);
   size_t buflen = 2 + 2 + strlen(packet->content.error.errmsg) + 1;
   ((uint16_t*) buf)[2 / 2] = htons(packet->content.error.errcode);
@@ -199,7 +186,7 @@ size_t marshallERROR(char* buf, packet_t* packet) {
   return buflen;
 }
 
-size_t (*marshalls[6])(char*, packet_t*) = {
+size_t (*marshalls[6])(char*, const packet_t*) = {
   NULL,
   marshallRRQ,
   marshallWRQ,
@@ -207,23 +194,22 @@ size_t (*marshalls[6])(char*, packet_t*) = {
   marshallACK,
   marshallERROR };
 
-size_t marshall(char* buf, packet_t* packet) {
+size_t marshall(char* buf, const packet_t* packet) {
   return marshalls[packet->opcode](buf, packet);
 }
 
 // Communication
 
-int sendPacket(sudpSocket_t* socket, const AdrInet* dst,
-               packet_t* packet) {
-  char* buf;
+int sendPacket(const sudpSocket_t* socket, const AdrInet* dst,
+               const packet_t* packet, size_t buflenMax) {
+  char buf[buflenMax];
   size_t buflen = marshall(buf, packet);
   return sudpWriteToSocket(socket, dst, buf, buflen);
 }
 
-int waitPacketWithTimeout(packet_t* packet, opcode_t opcode,
-                          sudpSocket_t* socket, AdrInet* connection,
-                          int timeout) {
-  char* buf;
+int waitPacket(packet_t* packet, const sudpSocket_t* socket,
+               const AdrInet* connection, size_t buflenMax, int timeout) {
+  char buf[buflenMax];
   int buflen = sudpRecvFromSocket(socket, buf, PACKET_SIZE, connection, timeout);
   if(buflen < 0) {
     return SOCKET_ERROR;
@@ -231,27 +217,24 @@ int waitPacketWithTimeout(packet_t* packet, opcode_t opcode,
   if(buflen == 0) {
     return TIMED_OUT;
   }
-  int status = unmarshall(packet, opcode, buf, (size_t) buflen);
+  int status = unmarshall(packet, buf, (size_t) buflen);
   if(status != SUCCESS) {
     return status;
   }
   return SUCCESS;
 }
 
-int sendAndWait(sudpSocket_t* socket,
-                AdrInet* dst, packet_t* packetOut,
-                AdrInet* connection, 
-                packet_t* packetIn, opcode_t opcodeIn,
-                checkFunction_t checkPacketIn,
-                unsigned int timeout, unsigned int attempts) {
-  // I know of the sacrosaint "goto considered harmful,
+int sendAndWait(const connection_t* connection, const packet_t* packetOut,
+                packet_t* packetIn, onWait_t callback) {
+  // I am aware of the sacrosaint "goto considered harmful,
   // but in this case it makes the code much clearer
   unsigned int packetsSent = 0;
   send:{
-    if(packetsSent == attempts) {
+    if(packetsSent == connection->attempts) {
       return 0;
     }
-    if(sendPacket(socket, dst, packetOut) < 0) {
+    if(sendPacket(connection->socket, connection->other, packetOut,
+                  connection->packetSize) < 0) {
       return -1;
     }
     packetsSent++;
@@ -259,13 +242,14 @@ int sendAndWait(sudpSocket_t* socket,
 
   wait:{
     int status =
-      waitPacketWithTimeout(packetIn, opcodeIn, socket, connection, timeout);
+      waitPacket(packetIn, connection->socket, connection->self,
+                 connection->packetSize, connection->timeout);
     switch(status) {
       case SUCCESS:{
-        packet_t* errpacket;
-        checkStatus_t checkStatus = checkPacketIn(packetIn);
-        switch(checkStatus) {
-          case OK:
+        callbackAction_t action =
+          callback(connection, packetOut, packetIn);
+        switch(action) {
+          case GO_THROUGH:
             return 0;
           case RESEND:
             goto send;
@@ -285,5 +269,58 @@ int sendAndWait(sudpSocket_t* socket,
   return 1;
 }
 
-/* int sendRRQwaitDATA(sudpSocket* socket, const AdrInet*) */
+#define TIMEOUT 10
+#define ATTEMPTS 10 
+int sendError(const connection_t* connection,
+              errcode_t errcode, const char* errmsg) {
+  packet_t packet;
+  createERROR(&packet, errcode, errmsg);
+  return sendPacket(connection->socket, connection->other, &packet,
+                    connection->packetSize);
+}
+
+/* callbackAction_t sRRQwDATA(const connection_t* connection, */
+/*                            const packet_t* packetOut, */
+/*                            const packet_t* packetIn){ */
+/*   if(packetIn->opcode == DATA) { */
+/*     if(packetIn->content.data.block != 1) { */
+/*       sendError(connection->socket, connection->other, */
+/*                 UNDEFINED_ERROR, "TODO"); */
+/*       return ABORT; */
+/*     } */
+/*     return GO_THROUGH; */
+/*   } */
+/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
+/*   return ABORT; */
+/* } */
+
+/* callbackAction_t sDATAwACK(const connection_t* connection, */
+/*                            const packet_t* packetOut, */
+/*                            const packet_t* packetIn){ */
+/*   if(packetIn->opcode == ACK) { */
+/*     if(packetIn->content.ack.block < packetOut->content.data.block) { */
+/*       return IGNORE; */
+/*     } */
+/*     if(packetIn->content.ack.block == packetOut->content.data.block) { */
+/*       return GO_THROUGH; */
+/*     } */
+/*   } */
+/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
+/*   return ABORT; */
+/* } */
+
+/* callbackAction_t sACKwDATA(const connection_t* connection, */
+/*                            const packet_t* packetOut, */
+/*                            const packet_t* packetIn){ */
+/*   if(packetIn->opcode == DATA) { */
+/*     if(packetIn->content.data.block <= packetOut->content.ack.block) { */
+/*       return IGNORE; */
+/*     } */
+/*     if(packetIn->content.data.block == packetOut->content.ack.block + 1) { */
+/*       return GO_THROUGH; */
+/*     } */
+/*   } */
+/*   sendError(connection->socket, connection->other, UNDEFINED_ERROR, "TODO"); */
+/*   return ABORT; */
+/* } */
 

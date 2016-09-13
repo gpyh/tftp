@@ -16,7 +16,7 @@ test: tests/bin/common
 	-tests/bin/common
 
 
-bin/tftp: $(patsubst %,obj/%.o,tftp serve fetch send)
+bin/tftp: $(patsubst %,obj/%.o,tftp serve fetch send common debug)
 
 obj/tftp.o: src/tftp.c $(patsubst %,include/%.h,serve fetch send)
 
@@ -27,6 +27,8 @@ obj/fetch.o: src/fetch.c
 obj/send.o: src/send.c
 
 obj/common.o: src/common.c include/common.h
+
+obj/debug.o: src/debug.c include/debug.h include/common.h
 
 bin/%: obj/%.o
 	$(CC) $(LDFLAGS) -o $@ $^

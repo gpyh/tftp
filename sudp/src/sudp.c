@@ -67,7 +67,7 @@ uint16_t sudpGetLocalPort (const sudpSocket_t *socket) {
     return AdrInet_getPort(socket->addr);
 }
 
-ssize_t sudpWriteToSocket (sudpSocket_t *sock, const AdrInet *address, const char *buffer, int length) {
+ssize_t sudpWriteToSocket (const sudpSocket_t *sock, const AdrInet *address, const char *buffer, int length) {
     if(sock == NULL || address == NULL || buffer == NULL) {
         return (ssize_t)-1;
     }
@@ -76,7 +76,7 @@ ssize_t sudpWriteToSocket (sudpSocket_t *sock, const AdrInet *address, const cha
     return sendto(sock->fd, buffer, (size_t)length, 0, &sockAddr, sizeof(sockAddr));
 }
 
-ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, AdrInet *address, int timeout) {
+ssize_t sudpRecvFromSocket (const sudpSocket_t *sock, char *buffer, int length, const AdrInet *address, int timeout) {
     if(sock == NULL || address == NULL || buffer == NULL) {
         return (ssize_t)-1;
     }
@@ -84,18 +84,20 @@ ssize_t sudpRecvFromSocket (sudpSocket_t *sock, char *buffer, int length, AdrIne
     memset(&sockAddr, 0, sizeof(struct sockaddr));
     socklen_t *addr_length = (socklen_t*)malloc(sizeof(*addr_length));
     *addr_length = sizeof(struct sockaddr);
-    int nfds;
     fd_set read_fds;
-    struct timeval tv;
-    tv.tv_sec = timeout;
-    tv.tv_usec = 0;
     FD_ZERO(&read_fds);
     FD_SET(sock->fd, &read_fds);
-    nfds = (sock->fd+1);
-    int result = select(nfds, &read_fds, NULL, NULL, &tv);
-    if(result == -1) {
-        perror("select");
-        return -1;
+    if(timeout > 0) {
+      int nfds;
+      struct timeval tv;
+      tv.tv_sec = timeout;
+      tv.tv_usec = 0;
+      nfds = (sock->fd+1);
+      int result = select(nfds, &read_fds, NULL, NULL, &tv);
+      if(result == -1) {
+          perror("select");
+          return -1;
+      }
     }
     ssize_t size = 0;
     if(FD_ISSET(sock->fd, &read_fds)) {

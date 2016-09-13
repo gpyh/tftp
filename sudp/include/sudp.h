@@ -26,10 +26,10 @@ bool sudpIsAttached(sudpSocket_t *socket);
 int sudpGetLocalName(sudpSocket_t *socket, char *buf, int buflen);
 int sudpGetLocalIP(const sudpSocket_t *socket, char *ip, int iplen);
 uint16_t sudpGetLocalPort(const sudpSocket_t *socket);
-ssize_t sudpWriteToSocket(sudpSocket_t *socket, const AdrInet *address,
+ssize_t sudpWriteToSocket(const sudpSocket_t *socket, const AdrInet *address,
                           const char *buf, int buflen);
-ssize_t sudpRecvFromSocket(sudpSocket_t *socket, char *buf, int buflen,
-                           AdrInet *address, int timeout);
+ssize_t sudpRecvFromSocket(const sudpSocket_t *socket, char *buf, int buflen,
+                           const AdrInet *address, int timeout);
 int sudpCloseSocket(sudpSocket_t *socket);
 
 #endif // SUDP_H

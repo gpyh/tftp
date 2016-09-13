@@ -1,3 +1,5 @@
+#ifndef TFTP_COMMON_H
+#define TFTP_COMMON_H
 
 #include <AdrInet.h>
 #include <sudp.h>
@@ -5,23 +7,28 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
+#define DEFAULT_PORT 6969
+#define MAX_BLOCKSIZE 65464
+
 static inline
-uint16_t concatTwoBytes(char* buf) {
+uint16_t concatTwoBytes(const char* buf) {
   return *((uint16_t*) buf);
 } 
 
 typedef enum {
   MIN_OPCODE = 0,
+
   RRQ,
   WRQ,
   DATA,
   ACK,
   ERROR,
+
   MAX_OPCODE
 } opcode_t;
 
 static inline
-opcode_t readOpcode(char* buf) {
+opcode_t readOpcode(const char* buf) {
   uint16_t shortOpcode = ntohs(concatTwoBytes(buf));
   if(shortOpcode >= MAX_OPCODE) {
     return MIN_OPCODE;
@@ -36,19 +43,21 @@ void writeOpcode(opcode_t opcode, char* buf) {
 
 typedef enum {
   MIN_ERRCODE = -1,
+
   UNDEFINED_ERROR,
   FILENOTFOUND,
   ACCVIOL,
   DISKERR,
-  ILLEGAL,
+  ILLEGALOP,
   NOID,
   FILEEXISTS,
   NOUSER,
+
   MAX_ERRCODE
 } errcode_t;
 
 static inline
-errcode_t readErrcode(char* buf) {
+errcode_t readErrcode(const char* buf) {
   uint16_t shortErrcode = ntohs(concatTwoBytes(buf));
   if(shortErrcode >= MAX_ERRCODE) {
     return MIN_ERRCODE;
@@ -66,13 +75,13 @@ typedef struct {
   union {
     struct {
       const char* filename;
-      char* mode;
+      const char* mode;
     } rq;
 
     struct {
       uint16_t block;
       size_t datalen;
-      char* data;
+      const char* data;
     } data;
 
     struct {
@@ -81,21 +90,21 @@ typedef struct {
 
     struct {
       errcode_t errcode;
-      char* errmsg;
+      const char* errmsg;
     } error;
 
   } content;
 } packet_t;
 
 static inline
-void createRRQ(packet_t* packet, const char* filename, char* mode) {
+void createRRQ(packet_t* packet, const char* filename, const char* mode) {
   packet->opcode = RRQ;
   packet->content.rq.filename = filename;
   packet->content.rq.mode = mode;
 }
 
 static inline
-void createWRQ(packet_t* packet, const char* filename, char* mode) {
+void createWRQ(packet_t* packet, const char* filename, const char* mode) {
   packet->opcode = WRQ;
   packet->content.rq.filename = filename;
   packet->content.rq.mode = mode;
@@ -108,8 +117,8 @@ void createACK(packet_t* packet, uint16_t block) {
 }
 
 static inline
-void createDATA(packet_t* packet, uint16_t block, char* data,
-                    size_t datalen) {
+void createDATA(packet_t* packet, uint16_t block,
+                const char* data, size_t datalen) {
   packet->opcode = DATA;
   packet->content.data.block = block;
   packet->content.data.datalen = datalen;
@@ -117,7 +126,7 @@ void createDATA(packet_t* packet, uint16_t block, char* data,
 }
 
 static inline
-void createERROR(packet_t* packet, errcode_t errcode, char* errmsg) {
+void createERROR(packet_t* packet, errcode_t errcode, const char* errmsg) {
   packet->opcode = ERROR;
   packet->content.error.errcode = errcode;
   packet->content.error.errmsg = errmsg;
@@ -139,33 +148,46 @@ enum {
   MODE_TRUNCATED,
   INVALID_BLOCK,
   WRONG_OPCODE,
+  ERROR_RECEIVED,
   SOCKET_ERROR,
   TIMED_OUT,
   SUCCESS = 0
 };
 
-int verifyRRQ(const char* filename, char* mode);
-int verifyWRQ(const char* filename, char* mode);
+int verifyRRQ(const char* filename, const char* mode);
+int verifyWRQ(const char* filename, const char* mode);
 // There's no need to verify ACK
 // int verifyACK(uint16_t block);
-int verifyDATA(uint16_t block, char* data, size_t datalen);
-int verifyERROR(errcode_t errcode, char* errmsg);
-
-/* status_t unmarshall(packet_t* packet, char* buf, size_t buflen); */
+int verifyDATA(uint16_t block, const char* data, size_t datalen);
+int verifyERROR(errcode_t errcode, const char* errmsg);
 
 typedef enum {
-  OK,
+  GO_THROUGH,
   RESEND,
   IGNORE,
   ABORT
-} checkStatus_t;
+} callbackAction_t;
 
-typedef checkStatus_t (*checkFunction_t)(packet_t*);
+typedef struct {
+  sudpSocket_t* socket;
+  AdrInet* self;
+  AdrInet* other;
+  unsigned int timeout;
+  unsigned int attempts;
+  size_t packetSize;
+} connection_t;
 
-int sendAndWait(sudpSocket_t* socket,
-                AdrInet* dst, packet_t* packetOut,
-                AdrInet* connection, 
-                packet_t* packetIn, opcode_t opcodeIn,
-                checkFunction_t checkPacketIn,
-                unsigned int timeout, unsigned int attempts);
+typedef callbackAction_t (*onWait_t)(const connection_t* connection,
+                                     const packet_t* packetOut,
+                                     const packet_t* packetIn);
 
+int sendPacket(const sudpSocket_t* socket, const AdrInet* dst,
+               const packet_t* packet, size_t buflenMax);
+
+int waitPacket(packet_t* packet, const sudpSocket_t* socket,
+               const AdrInet* connection, size_t buflenMax, int timeout);
+
+int sendAndWait(const connection_t* connection, const packet_t* packetOut,
+                packet_t* packetIn, onWait_t callback);
+
+#endif // TFTP_COMMON_H
